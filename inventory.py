@@ -37,13 +37,11 @@ class Cart:
 
     def apply_discount(self, percent: float) -> float:
         """Return subtotal after applying a percentage discount (0-100)."""
-        # BUG 1: should be (1 - percent/100) but divides by 10 instead of 100
-        return self.subtotal() * (1 - percent / 10)
+        return self.subtotal() * (1 - percent / 100)
 
     def total_items(self) -> int:
         """Return total number of individual items in the cart."""
-        # BUG 2: counts product types, not qty
-        return len(self.items)
+        return sum(q for p, q in self.items)
 
 
 class OrderProcessor:
@@ -56,12 +54,13 @@ class OrderProcessor:
         return round(self.cart.subtotal() * self.TAX_RATE, 2)
 
     def final_total(self, discount_percent: float = 0) -> float:
-        """Discounted subtotal + tax."""
-        discounted = self.cart.apply_discount(discount_percent)
-        return round(discounted + self.calculate_tax(), 2)
+        if not isinstance(discount_percent, (int, float)):
+            raise ValueError("Discount percentage must be a number")
+        if discount_percent < 0:
+            raise ValueError("Discount percentage cannot be negative")
+        subtotal = self.cart.apply_discount(discount_percent)
+        tax = self.calculate_tax()
+        return round(subtotal + tax, 2)
 
     def can_checkout(self) -> bool:
-        """Cart must have at least one item to check out."""
-        # BUG 3: off-by-one — should be > 0 but uses >= 1... actually fine
-        # Real bug: uses total_items() which is broken (counts types not qty)
         return self.cart.total_items() > 0
