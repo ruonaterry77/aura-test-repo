@@ -19,10 +19,10 @@ def calculate_shipping(weight_kg: float, method: str) -> float:
         raise ValueError(f"Unknown shipping method: {method}")
 
     base = RATES[method]
-    # BUG: should add surcharge for weight > 1, but multiplies instead of adds
+    # calculate surcharge for weight > 1
     if weight_kg > 1:
         surcharge = (weight_kg - 1) * 0.50
-        return base * surcharge   # BUG: should be base + surcharge
+        return base + surcharge  # add surcharge to base rate
 
     return base
 
